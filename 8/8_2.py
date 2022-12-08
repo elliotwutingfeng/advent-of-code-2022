@@ -3,7 +3,7 @@ with open("input.txt", "r") as f:
 
 arr = [[int(x) for x in line] for line in lines]
 
-scores: dict[tuple[int, int], int] = dict()
+highest_score = 0
 
 for x in range(len(arr)):
     for y in range(len(arr[0])):
@@ -28,6 +28,6 @@ for x in range(len(arr)):
             right += 1
             if arr[x][i] >= arr[x][y]:
                 break
-        scores[(x, y)] = max(1, top) * max(1, left) * max(1, bottom) * max(1, right)
+        highest_score = max(highest_score, top * bottom * left * right)
 
-print(max(scores.values()))
+print(highest_score)
