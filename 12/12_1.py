@@ -71,10 +71,6 @@ def find_shortest_path(graph, source, destination) -> float:
     if source not in all_nodes or destination not in all_nodes:
         return -1
     costs = {**{node: float("inf") for node in all_nodes}, **graph[source]}
-    parents = {
-        **{destination: None for _ in all_nodes},
-        **{k: source for k in graph[source]},
-    }
 
     processed = set()
     while (node := find_lowest_cost_node(costs)) is not None:
@@ -84,7 +80,6 @@ def find_shortest_path(graph, source, destination) -> float:
             new_cost = cost + neighbors[n]
             if costs[n] > new_cost:
                 costs[n] = new_cost
-                parents[n] = node
         processed.add(node)
 
     return costs[destination]

@@ -5,29 +5,30 @@ with open("input.txt", "r") as f:
 
 grid = [[x for x in line] for line in lines]
 
-all_the_a = []
+all_the_a = set()
 
 for x in range(len(grid)):
     for y in range(len(grid[0])):
         if grid[x][y] == "a":
-            all_the_a.append((x, y))
+            all_the_a.add((x, y))
         if grid[x][y] == "S":
-            all_the_a.append((x, y))
+            all_the_a.add((x, y))
             grid[x][y] = "a"
         if grid[x][y] == "E":
-            destination = (x, y)
+            source = (x, y)
             grid[x][y] = "z"
 
 
-def is_at_most_one_higher(start, end):
-    return ord(end) - 1 <= ord(start)
+def is_at_most_one_lower(start, end):
+    return ord(start) - 1 <= ord(end)
 
 
-assert is_at_most_one_higher("x", "v") is True
-assert is_at_most_one_higher("x", "w") is True
-assert is_at_most_one_higher("x", "x") is True
-assert is_at_most_one_higher("x", "y") is True
-assert is_at_most_one_higher("x", "z") is False
+assert is_at_most_one_lower("x", "u") is False
+assert is_at_most_one_lower("x", "v") is False
+assert is_at_most_one_lower("x", "w") is True
+assert is_at_most_one_lower("x", "x") is True
+assert is_at_most_one_lower("x", "y") is True
+assert is_at_most_one_lower("x", "z") is True
 
 
 graph: dict = {}
@@ -39,12 +40,12 @@ for x in range(len(grid)):
             for k in [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
             if 0 <= k[0] < len(grid)
             and 0 <= k[1] < len(grid[0])
-            and is_at_most_one_higher(val, grid[k[0]][k[1]])
+            and is_at_most_one_lower(val, grid[k[0]][k[1]])
         }
         graph[(x, y)] = neighbors
 
 
-def find_shortest_path(graph, source, destination) -> float:
+def find_shortest_path(graph, source, all_the_a) -> float:
     """
     Dijkstra's algorithm
     """
@@ -74,13 +75,9 @@ def find_shortest_path(graph, source, destination) -> float:
         return lowest_cost_node
 
     all_nodes = get_keys(graph)
-    if source not in all_nodes or destination not in all_nodes:
+    if source not in all_nodes:
         return -1
     costs = {**{node: float("inf") for node in all_nodes}, **graph[source]}
-    parents = {
-        **{destination: None for _ in all_nodes},
-        **{k: source for k in graph[source]},
-    }
 
     processed = set()
     while (node := find_lowest_cost_node(costs)) is not None:
@@ -90,13 +87,10 @@ def find_shortest_path(graph, source, destination) -> float:
             new_cost = cost + neighbors[n]
             if costs[n] > new_cost:
                 costs[n] = new_cost
-                parents[n] = node
         processed.add(node)
 
-    return costs[destination]
+    return min(v for k, v in costs.items() if k in all_the_a)
 
 
-with Pool(16) as p:
-    # Brute-forcing 😞
-    cost = min(p.starmap(find_shortest_path, ((graph, a, destination) for a in all_the_a)))
+cost = find_shortest_path(graph, source, all_the_a)
 print(cost)
